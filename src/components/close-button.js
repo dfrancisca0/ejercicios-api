@@ -1,4 +1,4 @@
-class Map extends HTMLElement {
+class CloseButton extends HTMLElement {
   constructor () {
     super()
     this.shadow = this.attachShadow({ mode: 'open' })
@@ -12,17 +12,17 @@ class Map extends HTMLElement {
     this.shadow.innerHTML =
       /* html */`
         <style>
-          .map{
+          .close-button{
             
           }
         </style>
         
-        <div class="map">
-          <div class="block">
-          </div>
+        <div class="close-button">
+          <button>
+          </button>
         </div>
       `
   }
 }
 
-customElements.define('map-component', Map)
+customElements.define('close-button-component', CloseButton)
