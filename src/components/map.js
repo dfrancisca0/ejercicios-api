@@ -13,7 +13,9 @@ class Map extends HTMLElement {
       /* html */`
         <style>
           .map{
-            
+            height: 100vh;
+            width: 100%;
+            background-color: hsla(0, 50%, 50%, 1)
           }
         </style>
         
