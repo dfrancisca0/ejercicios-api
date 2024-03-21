@@ -182,6 +182,13 @@ class List extends HTMLElement {
         this.shadow.querySelector('.item.active')?.classList.remove('active')
         item.classList.add('active')
         closeButton.classList.add('active')
+
+        const activeButton = this.shadow.querySelector('.close-button.active')
+
+        if (!activeButton) {
+          this.shadow.closest('.item').querySelector('.close.button')
+          closeButton.classList.remove('active')
+        }
       })
     })
 

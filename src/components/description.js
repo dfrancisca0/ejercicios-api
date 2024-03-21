@@ -74,7 +74,6 @@ class Description extends HTMLElement {
       locationElement.innerText = element.address
       itemLocation.appendChild(locationElement)
     })
-
   }
 }
 
