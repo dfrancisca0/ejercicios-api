@@ -15,7 +15,7 @@ class Row extends HTMLElement {
         <style>
           .row{
             display: grid;
-            gap: 2rem;
+            gap: 1rem;
             grid-template-columns: repeat(${this.columns}, 1fr);
           }
         </style>

@@ -1,11 +1,21 @@
+import { store } from '../redux/store.js'
+import { setPinElement } from '../redux/map-slice.js'
+
 class List extends HTMLElement {
   constructor () {
     super()
     this.shadow = this.attachShadow({ mode: 'open' })
     this.data = []
+    this.unsubscribe = null
   }
 
   async connectedCallback () {
+    this.unsubscribe = store.subscribe(() => {
+      const currentState = store.getState()
+
+      console.log(this.shadow.querySelector(`[data-name='${currentState.map.pinElement.title}']`))
+    })
+
     await this.loadData()
     await this.render()
   }
@@ -72,6 +82,7 @@ class List extends HTMLElement {
           .item.active {
             border: 1px solid hsla(0, 50%, 50%, 1);
             border-radius: 10px;
+            margin: 0 0 1rem 0
           }
 
           .item.active .item-header {
@@ -86,7 +97,6 @@ class List extends HTMLElement {
           .item-body {
             display: flex;
             flex-direction: column;
-            height: 0;
             max-height: 0;
             width: 100%;
             margin: .5rem 0 1rem 0;
@@ -96,17 +106,10 @@ class List extends HTMLElement {
           }
 
           .item.active .item-body{
-            height: max-content;
+            max-height: max-content;
           }
 
-          .item-content {
-            display: flex;
-            flex-direction: column;
-            padding: 1rem 0;
-            gap: 1rem
-          }
-
-          .item-content h2, p {
+          .item-body h2, p {
             color: hsla(0, 0%, 0%, 1);
             padding: 0 1rem;
           }
@@ -144,6 +147,7 @@ class List extends HTMLElement {
     this.data.forEach(element => {
       const item = document.createElement('div')
       item.classList.add('item')
+      item.dataset.name = element.name
       itemsList.appendChild(item)
 
       const itemHeader = document.createElement('div')
@@ -178,19 +182,24 @@ class List extends HTMLElement {
       locationElement.innerText = element.address
       itemLocation.appendChild(locationElement)
 
+      // pending: it closes when I click on top of the item too
       item.addEventListener('click', () => {
-        this.shadow.querySelector('.item.active')?.classList.remove('active')
-        item.classList.add('active')
-        closeButton.classList.add('active')
-
-        const activeButton = this.shadow.querySelector('.close-button.active')
-
-        if (!activeButton) {
-          this.shadow.closest('.item').querySelector('.close.button')
+        if (item.classList.contains('active')) {
+          item.classList.remove('active')
           closeButton.classList.remove('active')
+        } else {
+          item.classList.add('active')
+          closeButton.classList.add('active')
         }
       })
+
+      closeButton.addEventListener('click', () => {
+        item.remove()
+        closeButton.remove()
+      })
     })
+
+    // this.render()???
 
     // this.shadow.querySelector('.list').scrollTo(0, 0)
     // item.scrollIntoView({ behavior: 'smooth' })
