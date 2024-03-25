@@ -12,8 +12,29 @@ class List extends HTMLElement {
   async connectedCallback () {
     this.unsubscribe = store.subscribe(() => {
       const currentState = store.getState()
+      const association = this.data.find(element => currentState.map.pinElement.name === element.name)
 
-      console.log(this.shadow.querySelector(`[data-name='${currentState.map.pinElement.title}']`))
+      if (association) {
+        const items = this.shadow.querySelectorAll('.item')
+        items.forEach(item => {
+          if (item.dataset.name === association.name) {
+            item.classList.add('active')
+            item.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+            const closeButton = item.querySelector('button')
+            if (closeButton) {
+              closeButton.classList.add('active')
+            }
+          } else {
+            item.classList.remove('active')
+
+            const closeButton = item.querySelector('button')
+            if (closeButton) {
+              closeButton.classList.remove('active')
+            }
+          }
+        })
+      }
     })
 
     await this.loadData()
@@ -21,7 +42,7 @@ class List extends HTMLElement {
   }
 
   async loadData () {
-    const response = await fetch('/src/data/associations.json')
+    const response = await fetch('/src/data/geocodedData.json')
     this.data = await response.json()
   }
 
@@ -171,7 +192,7 @@ class List extends HTMLElement {
       itemBody.appendChild(itemDescription)
 
       const descriptionElement = document.createElement('p')
-      descriptionElement.innerText = element.goal
+      descriptionElement.innerText = element.goals
       itemDescription.appendChild(descriptionElement)
 
       const itemLocation = document.createElement('div')
@@ -182,27 +203,33 @@ class List extends HTMLElement {
       locationElement.innerText = element.address
       itemLocation.appendChild(locationElement)
 
-      // pending: it closes when I click on top of the item too
       item.addEventListener('click', () => {
-        if (item.classList.contains('active')) {
+        const items = itemsList.querySelectorAll('.item')
+        items.forEach(item => {
           item.classList.remove('active')
-          closeButton.classList.remove('active')
-        } else {
-          item.classList.add('active')
+          const closeButton = item.querySelector('button')
+          if (closeButton) {
+            closeButton.classList.remove('active')
+          }
+        })
+
+        item.classList.add('active')
+        const closeButton = item.querySelector('button')
+        if (closeButton) {
           closeButton.classList.add('active')
         }
+
+        item.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+        store.dispatch(setPinElement(element))
       })
 
       closeButton.addEventListener('click', () => {
         item.remove()
         closeButton.remove()
+        document.querySelector('map-component').resetMap()
       })
     })
-
-    // this.render()???
-
-    // this.shadow.querySelector('.list').scrollTo(0, 0)
-    // item.scrollIntoView({ behavior: 'smooth' })
   }
 }
 

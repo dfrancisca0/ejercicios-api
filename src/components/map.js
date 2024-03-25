@@ -17,6 +17,24 @@ class Map extends HTMLElement {
   async connectedCallback () {
     this.unsubscribe = store.subscribe(() => {
       const currentState = store.getState()
+      const pinElement = currentState.map.pinElement
+
+      console.log(pinElement)
+      if (pinElement && pinElement.title) {
+        const selectedItem = this.data.find(element => element.name === pinElement.title)
+
+        if (selectedItem) {
+          pinElement.longitude = selectedItem.longitude
+          pinElement.latitude = selectedItem.latitude
+
+          store.dispatch(setPinElement(pinElement))
+        }
+      }
+
+      if (pinElement) {
+        this.map.setCenter({ lat: pinElement.latitude, lng: pinElement.longitude })
+        this.map.setZoom(18)
+      }
     })
 
     await this.loadData()
