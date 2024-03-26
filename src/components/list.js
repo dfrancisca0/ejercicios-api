@@ -7,33 +7,23 @@ class List extends HTMLElement {
     this.shadow = this.attachShadow({ mode: 'open' })
     this.data = []
     this.unsubscribe = null
+    this.association = {
+      title: null,
+      latitude: null,
+      longitude: null
+    }
   }
 
   async connectedCallback () {
     this.unsubscribe = store.subscribe(() => {
       const currentState = store.getState()
-      const association = this.data.find(element => currentState.map.pinElement.name === element.name)
+      const association = this.data.find(element => currentState.map.pinElement.title === element.name)
 
-      if (association) {
-        const items = this.shadow.querySelectorAll('.item')
-        items.forEach(item => {
-          if (item.dataset.name === association.name) {
-            item.classList.add('active')
-            item.scrollIntoView({ behavior: 'smooth', block: 'start' })
-
-            const closeButton = item.querySelector('button')
-            if (closeButton) {
-              closeButton.classList.add('active')
-            }
-          } else {
-            item.classList.remove('active')
-
-            const closeButton = item.querySelector('button')
-            if (closeButton) {
-              closeButton.classList.remove('active')
-            }
-          }
-        })
+      if (association.name !== this.association.title) {
+        this.shadow.querySelector('.item.active')?.classList.remove('active')
+        const item = this.shadow.querySelector(`[data-name='${association.name}']`)
+        item.classList.add('active')
+        item.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }
     })
 
@@ -154,7 +144,7 @@ class List extends HTMLElement {
             cursor: pointer;
           }
 
-          button.active {
+          .item.active button {
             display: block
           }
 
@@ -165,10 +155,47 @@ class List extends HTMLElement {
 
     const itemsList = this.shadow.querySelector('.list')
 
+    itemsList.addEventListener('click', event => {
+      if (event.target.closest('.item')) {
+        this.shadow.querySelector('.item.active')?.classList.remove('active')
+        const item = event.target.closest('.item')
+        item.classList.add('active')
+        item.scrollIntoView({ behavior: 'smooth', block: 'start' })
+
+        const pinElement = {
+          title: item.dataset.name,
+          latitude: parseFloat(item.dataset.latitude),
+          longitude: parseFloat(item.dataset.longitude)
+        }
+
+        this.association = pinElement
+
+        store.dispatch(setPinElement(pinElement))
+      }
+
+      if (event.target.closest('.close-button')) {
+        const closeButton = event.target.closest('.close-button')
+
+        closeButton.closest('.item').classList.remove('active')
+
+        const pinElement = {
+          title: null,
+          latitude: null,
+          longitude: null
+        }
+
+        this.association = pinElement
+
+        store.dispatch(setPinElement(pinElement))
+      }
+    })
+
     this.data.forEach(element => {
       const item = document.createElement('div')
       item.classList.add('item')
       item.dataset.name = element.name
+      item.dataset.latitude = element.latitude
+      item.dataset.longitude = element.longitude
       itemsList.appendChild(item)
 
       const itemHeader = document.createElement('div')
@@ -180,6 +207,7 @@ class List extends HTMLElement {
       itemHeader.appendChild(headerTitle)
 
       const closeButton = document.createElement('button')
+      closeButton.classList.add('close-button')
       closeButton.innerText = '< Volver'
       itemHeader.appendChild(closeButton)
 
@@ -202,33 +230,6 @@ class List extends HTMLElement {
       const locationElement = document.createElement('p')
       locationElement.innerText = element.address
       itemLocation.appendChild(locationElement)
-
-      item.addEventListener('click', () => {
-        const items = itemsList.querySelectorAll('.item')
-        items.forEach(item => {
-          item.classList.remove('active')
-          const closeButton = item.querySelector('button')
-          if (closeButton) {
-            closeButton.classList.remove('active')
-          }
-        })
-
-        item.classList.add('active')
-        const closeButton = item.querySelector('button')
-        if (closeButton) {
-          closeButton.classList.add('active')
-        }
-
-        item.scrollIntoView({ behavior: 'smooth', block: 'start' })
-
-        store.dispatch(setPinElement(element))
-      })
-
-      closeButton.addEventListener('click', () => {
-        item.remove()
-        closeButton.remove()
-        document.querySelector('map-component').resetMap()
-      })
     })
   }
 }

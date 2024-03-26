@@ -19,21 +19,13 @@ class Map extends HTMLElement {
       const currentState = store.getState()
       const pinElement = currentState.map.pinElement
 
-      console.log(pinElement)
-      if (pinElement && pinElement.title) {
-        const selectedItem = this.data.find(element => element.name === pinElement.title)
-
-        if (selectedItem) {
-          pinElement.longitude = selectedItem.longitude
-          pinElement.latitude = selectedItem.latitude
-
-          store.dispatch(setPinElement(pinElement))
-        }
-      }
-
-      if (pinElement) {
+      if (pinElement.title) {
         this.map.setCenter({ lat: pinElement.latitude, lng: pinElement.longitude })
         this.map.setZoom(18)
+      }
+
+      if (!pinElement.title) {
+        this.resetMap()
       }
     })
 
@@ -131,7 +123,7 @@ class Map extends HTMLElement {
     this.map.setZoom(15)
 
     const pinViewActive = new PinElement({
-      background: 'hsl(4deg 81% 42%)',
+      background: 'hsla(0, 50%, 50%, 1)',
       borderColor: 'hsl(4deg 81% 42%)',
       glyphColor: 'hsl(0deg 0% 100%)'
     })
@@ -150,10 +142,10 @@ class Map extends HTMLElement {
     const { PinElement } = await this.google.maps.importLibrary('marker')
 
     this.map.setCenter({ lat: 39.6135612, lng: 2.8820133 })
-    this.map.setZoom(10)
+    this.map.setZoom(9.8)
     this.markers.forEach(marker => {
       const pinView = new PinElement({
-        background: 'hsl(280deg 56% 47%)',
+        background: 'hsla(0, 50%, 50%, 1)',
         borderColor: 'hsl(0deg 0% 0%)',
         glyphColor: 'hsl(0deg 0% 0%)'
       })
